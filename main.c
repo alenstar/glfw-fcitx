@@ -23,7 +23,7 @@
 #define NK_GLFW_GL2_IMPLEMENTATION
 #include "nuklear/nuklear.h"
 #include "nuklear_glfw_gl2.h"
-
+#include "def.h"
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 800
 
@@ -56,6 +56,16 @@
 static void error_callback(int e, const char *d)
 {printf("Error %d: %s\n", e, d);}
 
+static void keypress_callback(GLFWwindow *win, int btn, int act, int mods) {
+	(void)win;
+	LOGD("KeyPress:%s Button:%04d", act == GLFW_PRESS ? "true" :"false", btn);
+}
+
+static void focus_callback(GLFWwindow *win, int focus) {
+	(void)win;
+	LOGD("Focus:%s", focus ? "true" :"false");
+}
+
 int main(void)
 {
     /* Platform */
@@ -73,7 +83,8 @@ int main(void)
     win = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Demo", NULL, NULL);
     glfwMakeContextCurrent(win);
     glfwGetWindowSize(win, &width, &height);
-
+	glfwSetWindowFocusCallback(win, focus_callback);
+	glfwSetKeyCallback(win, keypress_callback);
     /* GUI */
     ctx = nk_glfw3_init(win, NK_GLFW3_INSTALL_CALLBACKS);
     /* Load Fonts: if none of these are loaded a default font will be used  */
@@ -95,7 +106,7 @@ int main(void)
     /*set_style(ctx, THEME_RED);*/
     /*set_style(ctx, THEME_BLUE);*/
     /*set_style(ctx, THEME_DARK);*/
-
+	
     background = nk_rgb(28,48,62);
     while (!glfwWindowShouldClose(win))
     {

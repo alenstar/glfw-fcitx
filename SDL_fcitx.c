@@ -24,7 +24,7 @@
 #include <sys/types.h>
 
 #include <fcitx/frontend.h>
-
+#include "def.h"
 #include "SDL_fcitx.h"
 #include <SDL2/SDL.h>
 #include "SDL_dbus.h"
@@ -44,6 +44,57 @@
 
 #define IC_NAME_MAX 64
 #define DBUS_TIMEOUT 500
+
+#define UTF8_IsLeadByte(c) ((c) >= 0xC0 && (c) <= 0xF4)
+#define UTF8_IsTrailingByte(c) ((c) >= 0x80 && (c) <= 0xBF)
+/* !!! FIXME: these have side effects. You probably shouldn't use them. */
+/* !!! FIXME: Maybe we do forceinline functions of SDL_mini, SDL_minf, etc? */
+#define SDL_min(x, y) (((x) < (y)) ? (x) : (y))
+#define SDL_max(x, y) (((x) > (y)) ? (x) : (y))
+
+static int UTF8_TrailingBytes(unsigned char c)
+{
+    if (c >= 0xC0 && c <= 0xDF)
+        return 1;
+    else if (c >= 0xE0 && c <= 0xEF)
+        return 2;
+    else if (c >= 0xF0 && c <= 0xF4)
+        return 3;
+    else
+        return 0;
+}
+
+size_t SDL_utf8strlcpy(char *dst, const char *src, size_t dst_bytes)
+{
+    size_t src_bytes = strlen(src);
+    size_t bytes = SDL_min(src_bytes, dst_bytes - 1);
+    size_t i = 0;
+    char trailing_bytes = 0;
+    if (bytes)
+    {
+        unsigned char c = (unsigned char)src[bytes - 1];
+        if (UTF8_IsLeadByte(c))
+            --bytes;
+        else if (UTF8_IsTrailingByte(c))
+        {
+            for (i = bytes - 1; i != 0; --i)
+            {
+                c = (unsigned char)src[i];
+                trailing_bytes = UTF8_TrailingBytes(c);
+                if (trailing_bytes)
+                {
+                    if (bytes - i != trailing_bytes + 1)
+                        bytes = i;
+
+                    break;
+                }
+            }
+        }
+        memcpy(dst, src, bytes);
+    }
+    dst[bytes] = '\0';
+    return bytes;
+}
 
 #if 0
 int
@@ -241,6 +292,7 @@ DBus_MessageFilter(DBusConnection *conn, DBusMessage *msg, void *data)
         if (text) {
 		// TODO 
         //    SDL_SendKeyboardText(text);
+			LOGD("Text:%s ", text);
 		}
 
         return DBUS_HANDLER_RESULT_HANDLED;
@@ -260,13 +312,12 @@ DBus_MessageFilter(DBusConnection *conn, DBusMessage *msg, void *data)
 
             while (i < text_bytes) {
 				// TODO
-                size_t sz = 0; //SDL_utf8strlcpy(buf, text + i, sizeof(buf));
-                //size_t sz = SDL_utf8strlcpy(buf, text + i, sizeof(buf));
+                size_t sz = SDL_utf8strlcpy(buf, text + i, sizeof(buf));
                 size_t chars = _fcitx_utf8_strlen(buf);
 
 				// TODO
                 //SDL_SendEditingText(buf, cursor, chars);
-
+				LOGD("EditingText:%s %d %d ", buf, cursor, chars);
                 i += sz;
                 cursor += chars;
             }

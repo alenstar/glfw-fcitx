@@ -12,7 +12,7 @@
  */
 #ifndef NK_GLFW_GL2_H_
 #define NK_GLFW_GL2_H_
-
+#include "def.h"
 #include <GLFW/glfw3.h>
 
 enum nk_glfw_init_state{
@@ -191,6 +191,7 @@ nk_glfw3_render(enum nk_anti_aliasing AA, int max_vertex_buffer, int max_element
 NK_API void
 nk_glfw3_char_callback(GLFWwindow *win, unsigned int codepoint)
 {
+	LOGD("Char:%04x", codepoint);
     (void)win;
     if (glfw.text_len < NK_GLFW_TEXT_MAX)
         glfw.text[glfw.text_len++] = codepoint;
@@ -231,7 +232,7 @@ nk_glfw3_init(GLFWwindow *win, enum nk_glfw_init_state init_state)
     glfw.win = win;
     if (init_state == NK_GLFW3_INSTALL_CALLBACKS) {
         glfwSetScrollCallback(win, nk_gflw3_scroll_callback);
-        glfwSetCharCallback(win, nk_glfw3_char_callback);
+        // glfwSetCharCallback(win, nk_glfw3_char_callback);
     }
 
     nk_init_default(&glfw.ctx, 0);

@@ -36,7 +36,7 @@
 #define min(a,b) ((a) < (b) ? (a):(b))
 #define max(a,b) ((a) > (b) ? (a):(b))
 
-#ifdef DEBUG
+#if 1 //def DEBUG
 	#define LOGD(fmt, ...) do{printf("%s (%4d) DEBUG: ", __FILE__, __LINE__);printf(fmt, ## __VA_ARGS__);printf("\n");}while(0) 
 	#define LOGI(fmt, ...) do{printf("%s (%4d) INFO: ", __FILE__, __LINE__);printf(fmt, ## __VA_ARGS__);printf("\n");}while(0) 
 	#define LOGW(fmt, ...) do{printf("%s (%4d) WARN: ", __FILE__, __LINE__);printf(fmt, ## __VA_ARGS__);printf("\n");}while(0) 

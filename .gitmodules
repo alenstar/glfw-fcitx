@@ -1,0 +1,3 @@
+[submodule "ext/nuklear"]
+	path = ext/nuklear
+	url = https://github.com/vurtun/nuklear.git

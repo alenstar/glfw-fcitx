@@ -533,8 +533,10 @@ SDL_Fcitx_ProcessKeyEvent(uint32_t keysym, uint32_t keycode)
     Uint32 event_time = 0;
 
     msg = FcitxClientICNewMethod(&fcitx_client, "ProcessKeyEvent");
-    if (msg == NULL)
+    if (msg == NULL) {
+		LOGD("NewMethod ProcessKeyEvent");
         return false;
+	}
 
     state = Fcitx_ModState();
     dbus->message_append_args(msg,
@@ -562,6 +564,7 @@ SDL_Fcitx_ProcessKeyEvent(uint32_t keysym, uint32_t keycode)
     if (handled) {
 		// TODO
         // SDL_Fcitx_UpdateTextRect(NULL);
+		LOGD("UpdateTextRect");
     }
 
     return handled;

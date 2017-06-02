@@ -24,8 +24,9 @@
 #include "nuklear/nuklear.h"
 #include "nuklear_glfw_gl2.h"
 #include "def.h"
-#define WINDOW_WIDTH 1200
-#define WINDOW_HEIGHT 800
+#include "SDL_ime.h"
+#define WINDOW_WIDTH 640
+#define WINDOW_HEIGHT 480
 
 #define MAX_VERTEX_BUFFER 512 * 1024
 #define MAX_ELEMENT_BUFFER 128 * 1024
@@ -59,11 +60,20 @@ static void error_callback(int e, const char *d)
 static void keypress_callback(GLFWwindow *win, int btn, int act, int mods) {
 	(void)win;
 	LOGD("KeyPress:%s Button:%04d", act == GLFW_PRESS ? "true" :"false", btn);
+	SDL_IME_ProcessKeyEvent(mods, btn);
 }
 
 static void focus_callback(GLFWwindow *win, int focus) {
 	(void)win;
 	LOGD("Focus:%s", focus ? "true" :"false");
+	SDL_IME_SetFocus(focus);
+}
+
+static void key_callback(GLFWwindow *win, int key, int scancode, int action, int mods) {
+	(void)win;
+	LOGD("Key:%04d Scancode:%04d %s", key, scancode, action == GLFW_PRESS ? "true" :"false");
+	//if (action == GLFW_RELEASE)
+	//SDL_IME_ProcessKeyEvent(0,0);
 }
 
 int main(void)
@@ -84,7 +94,7 @@ int main(void)
     glfwMakeContextCurrent(win);
     glfwGetWindowSize(win, &width, &height);
 	glfwSetWindowFocusCallback(win, focus_callback);
-	glfwSetKeyCallback(win, keypress_callback);
+	glfwSetKeyCallback(win, key_callback);
     /* GUI */
     ctx = nk_glfw3_init(win, NK_GLFW3_INSTALL_CALLBACKS);
     /* Load Fonts: if none of these are loaded a default font will be used  */
@@ -106,7 +116,7 @@ int main(void)
     /*set_style(ctx, THEME_RED);*/
     /*set_style(ctx, THEME_BLUE);*/
     /*set_style(ctx, THEME_DARK);*/
-	
+	SDL_IME_Init();	
     background = nk_rgb(28,48,62);
     while (!glfwWindowShouldClose(win))
     {
@@ -122,6 +132,19 @@ int main(void)
             enum {EASY, HARD};
             static int op = EASY;
             static int property = 20;
+
+			{
+			// edit
+			int len; char buffer[256];
+			static char current[256];
+            nk_layout_row_static(ctx, 30, 160, 1);
+			len = snprintf(buffer, 256, "%s", current);
+			nk_edit_string(ctx, NK_EDIT_SIMPLE, buffer, &len, 255, nk_filter_float);
+			buffer[len] = 0;
+			len = snprintf(current, 256, "%s", buffer);
+			current[len] = 0;
+			}
+
             nk_layout_row_static(ctx, 30, 80, 1);
             if (nk_button_label(ctx, "button"))
                 fprintf(stdout, "button pressed\n");
@@ -169,6 +192,7 @@ int main(void)
         nk_glfw3_render(NK_ANTI_ALIASING_ON, MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);
         glfwSwapBuffers(win);}
     }
+	SDL_IME_Quit();
     nk_glfw3_shutdown();
     glfwTerminate();
     return 0;

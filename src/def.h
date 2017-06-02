@@ -1,18 +1,14 @@
 #ifndef DEF_H
-
+#define DEF_H
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <errno.h>
-#include <time.h>
-#include <malloc.h>
-#ifndef WIN32 
-#include <unistd.h>
 #include <sys/ipc.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
-#include <sys/utsname.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <net/if.h>
@@ -24,28 +20,53 @@
 #include <arpa/inet.h>
 #include <netinet/ip_icmp.h>
 #include <linux/if_ether.h>
+#include <malloc.h>
 #include <fcntl.h>
 #include <termios.h>
 #include <ctype.h>
 #include <pthread.h>
+#include <time.h>
 #include <signal.h>
 #include <sched.h>
+
+//#include <easylogging++.h>
+
+// el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Format, "%datetime %func[%fbase] %level: %msg");
+#define def_msleep(M) usleep(1000*(M))
+#define def_min(a,b) ((a) < (b) ? (a):(b))
+#define def_max(a,b) ((a) > (b) ? (a):(b))
+
+#ifdef _WIN32
+#define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
+#else
+#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 #endif
 
-#define msleep(M) usleep(1000*(M))
-#define min(a,b) ((a) < (b) ? (a):(b))
-#define max(a,b) ((a) > (b) ? (a):(b))
-
+#if 1
 #if 1 //def DEBUG
-	#define LOGD(fmt, ...) do{printf("%s (%4d) DEBUG: ", __FILE__, __LINE__);printf(fmt, ## __VA_ARGS__);printf("\n");}while(0) 
-	#define LOGI(fmt, ...) do{printf("%s (%4d) INFO: ", __FILE__, __LINE__);printf(fmt, ## __VA_ARGS__);printf("\n");}while(0) 
-	#define LOGW(fmt, ...) do{printf("%s (%4d) WARN: ", __FILE__, __LINE__);printf(fmt, ## __VA_ARGS__);printf("\n");}while(0) 
-	#define LOGE(fmt, ...) do{printf("%s (%4d) ERROR: ", __FILE__, __LINE__);printf(fmt, ## __VA_ARGS__);printf("\n");}while(0) 
+    #define LOGD(...) do{char tmp[1024]={0x00};snprintf(tmp, 1023, __VA_ARGS__); printf("%s\t(%3d)[D]: %s\n", __FILENAME__, __LINE__, tmp);}while(0)
+    #define LOGI(...) do{char tmp[1024]={0x00};snprintf(tmp, 1023, __VA_ARGS__); printf("%s\t(%3d)[I]: %s\n", __FILENAME__, __LINE__, tmp);}while(0)
+    #define LOGW(...) do{char tmp[1024]={0x00};snprintf(tmp, 1023, __VA_ARGS__); printf("%s\t(%3d)[W]: %s\n", __FILENAME__, __LINE__, tmp);}while(0)
+    #define LOGE(...) do{char tmp[1024]={0x00};snprintf(tmp, 1023, __VA_ARGS__); printf("%s\t(%3d)[E]: %s\n", __FILENAME__, __LINE__, tmp);}while(0)
 #else
-	#define LOGI(fmt, ...) 
-	#define LOGD(fmt, ...) 
-	#define LOGW(fmt, ...) 
-	#define LOGE(fmt, ...) do{printf("%s (%4d) ERROR: ", __FILE__, __LINE__);printf(fmt, ## __VA_ARGS__);printf("\n");}while(0) 
+    #define LOGI(...)
+	#define LOGD(...) 
+	#define LOGW(...) 
+    #define LOGE(...) do{char tmp[1024]={0x00};snprintf(tmp, 1023, __VA_ARGS__); printf("%s\t(%3d)[E]: %s\n", __FILENAME__, __LINE__, tmp);}while(0)
+#endif
+#else
+#if 1 //def DEBUG
+// Use default logger
+    #define LOGI(...) el::Loggers::getLogger("default")->info(__VA_ARGS__)
+    #define LOGD(...) el::Loggers::getLogger("default")->debug(__VA_ARGS__)
+	#define LOGW(...) el::Loggers::getLogger("default")->warn(__VA_ARGS__)
+    #define LOGE(...) el::Loggers::getLogger("default")->error(__VA_ARGS__)
+#else
+    #define LOGI(...)
+    #define LOGD(...)
+    #define LOGW(...)
+    #define LOGE(...) el::Loggers::getLogger("default")->error(__VA_ARGS__)
+#endif
 #endif
 
 #endif

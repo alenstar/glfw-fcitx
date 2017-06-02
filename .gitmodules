@@ -1,3 +1,6 @@
 [submodule "ext/nuklear"]
 	path = ext/nuklear
 	url = https://github.com/vurtun/nuklear.git
+[submodule "ext/glfw"]
+	path = ext/glfw
+	url = https://github.com/glfw/glfw.git
